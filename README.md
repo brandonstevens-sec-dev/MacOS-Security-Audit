@@ -7,7 +7,7 @@ A read-only Python CLI tool that audits key macOS security settings and generate
 ## Requirements
 
 - macOS 13 (Ventura) or later (tested on macOS with Apple Silicon)
-- Python 3.10+
+- Python 3.10+ (3.12 recommended)
 - No third-party dependencies — uses only the Python standard library
 
 ## Quick Start
@@ -15,20 +15,34 @@ A read-only Python CLI tool that audits key macOS security settings and generate
 ```bash
 git clone https://github.com/brandonstevens-sec-dev/MacOS-Security-Audit.git
 cd MacOS-Security-Audit
-python3 macos_audit.py
+python3.12 -m venv venv
+source venv/bin/activate
+chmod +x macos_audit.py
+./macos_audit.py
 ```
 
 Some checks (Remote Login, Find My Mac) require admin privileges and will be
 **skipped** when running without sudo. To run a complete audit:
 
 ```bash
-sudo python3 macos_audit.py
+sudo ./macos_audit.py
 ```
+
+### Troubleshooting
+
+- **Multiple Python versions installed?** Use `python3.12` explicitly instead of
+  `python3`, which may point to an older version. Check with `python3 --version`.
+- **`command not found: python3.12`?** Install via [python.org](https://www.python.org/downloads/)
+  or Homebrew: `brew install python@3.12`
+- **Permission denied running `./macos_audit.py`?** Run `chmod +x macos_audit.py` first,
+  or invoke directly with `python3.12 macos_audit.py`.
+- **Virtual environment not activating?** Make sure you run `source venv/bin/activate`
+  (not just `venv/bin/activate`). Your prompt should show `(venv)` when active.
 
 ## Usage
 
 ```
-python3 macos_audit.py [OPTIONS]
+./macos_audit.py [OPTIONS]
 
 Options:
   --json FILE    Write results to a JSON file in addition to terminal output
@@ -41,22 +55,22 @@ Options:
 
 Standard audit (admin-only checks are skipped gracefully):
 ```bash
-python3 macos_audit.py
+./macos_audit.py
 ```
 
 Full audit with admin privileges:
 ```bash
-sudo python3 macos_audit.py
+sudo ./macos_audit.py
 ```
 
 Enforce full audit (fails fast if not root):
 ```bash
-sudo python3 macos_audit.py --full
+sudo ./macos_audit.py --full
 ```
 
 Terminal output plus JSON report:
 ```bash
-python3 macos_audit.py --json audit_report.json
+./macos_audit.py --json audit_report.json
 ```
 
 ## What Gets Checked
