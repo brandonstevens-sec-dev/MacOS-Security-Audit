@@ -10,6 +10,7 @@ class Status(Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     WARN = "WARNING"
+    SKIPPED = "SKIPPED"
     ERROR = "ERROR"
 
 
@@ -71,8 +72,15 @@ class AuditReport:
         return sum(1 for r in self.results if r.status == Status.ERROR)
 
     @property
+    def skipped(self) -> int:
+        return sum(1 for r in self.results if r.status == Status.SKIPPED)
+
+    @property
     def compliance_pct(self) -> float:
-        scorable = [r for r in self.results if r.status != Status.ERROR]
+        scorable = [
+            r for r in self.results
+            if r.status not in (Status.ERROR, Status.SKIPPED)
+        ]
         if not scorable:
             return 0.0
         passed = sum(1 for r in scorable if r.status == Status.PASS)
@@ -87,6 +95,7 @@ class AuditReport:
                 "failed": self.failed,
                 "warnings": self.warnings,
                 "errors": self.errors,
+                "skipped": self.skipped,
                 "compliance_percentage": self.compliance_pct,
             },
             "results": [r.to_dict() for r in self.results],

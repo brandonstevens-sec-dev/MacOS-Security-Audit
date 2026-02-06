@@ -18,6 +18,9 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import read_plist_key, run_cmd
 
+# Reading /Library/Preferences/com.apple.FindMyMac and nvram both need admin.
+REQUIRES_ADMIN = True
+
 
 def check_find_my_mac() -> CheckResult:
     """Check whether Find My Mac is enabled."""

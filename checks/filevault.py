@@ -18,6 +18,8 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import run_cmd
 
+REQUIRES_ADMIN = False
+
 
 def check_filevault() -> CheckResult:
     """Check whether FileVault full-disk encryption is enabled."""

@@ -8,10 +8,11 @@ from lib.models import AuditReport, CheckResult, Status
 
 # ANSI color codes
 _COLORS = {
-    Status.PASS: "\033[92m",   # green
-    Status.FAIL: "\033[91m",   # red
-    Status.WARN: "\033[93m",   # yellow
-    Status.ERROR: "\033[90m",  # gray
+    Status.PASS: "\033[92m",    # green
+    Status.FAIL: "\033[91m",    # red
+    Status.WARN: "\033[93m",    # yellow
+    Status.SKIPPED: "\033[96m", # cyan
+    Status.ERROR: "\033[90m",   # gray
 }
 _BOLD = "\033[1m"
 _RESET = "\033[0m"
@@ -26,6 +27,7 @@ def _status_icon(status: Status) -> str:
         Status.PASS: _color(status, "[PASS]"),
         Status.FAIL: _color(status, "[FAIL]"),
         Status.WARN: _color(status, "[WARN]"),
+        Status.SKIPPED: _color(status, "[SKIP]"),
         Status.ERROR: _color(status, "[ERR ]"),
     }
     return icons[status]
@@ -35,12 +37,22 @@ def print_banner() -> None:
     banner = rf"""
 {_BOLD}┌─────────────────────────────────────────────────┐
 │           macOS Security Audit Tool              │
-│                   v0.1.0                         │
+│                   v0.2.0                         │
 │                                                  │
 │  Read-only audit — no system changes are made.   │
 └─────────────────────────────────────────────────┘{_RESET}
 """
     print(banner)
+
+
+def print_privilege_notice(is_admin: bool) -> None:
+    """Print a notice about the current privilege level."""
+    if is_admin:
+        print(f"  {_COLORS[Status.PASS]}Running with admin privileges — full audit.{_RESET}")
+    else:
+        print(f"  {_COLORS[Status.WARN]}Running without admin privileges — some checks will be skipped.{_RESET}")
+        print(f"  {_COLORS[Status.WARN]}Re-run with sudo for a complete audit: sudo python3 macos_audit.py{_RESET}")
+    print()
 
 
 def print_system_info(info: dict) -> None:
@@ -76,9 +88,16 @@ def print_summary(report: AuditReport) -> None:
     print(f"  {_COLORS[Status.PASS]}Passed:        {report.passed}{_RESET}")
     print(f"  {_COLORS[Status.FAIL]}Failed:        {report.failed}{_RESET}")
     print(f"  {_COLORS[Status.WARN]}Warnings:      {report.warnings}{_RESET}")
+    if report.skipped:
+        print(f"  {_COLORS[Status.SKIPPED]}Skipped:       {report.skipped}  (requires admin){_RESET}")
     if report.errors:
         print(f"  {_COLORS[Status.ERROR]}Errors:        {report.errors}{_RESET}")
     print(f"  Compliance:     {pct_color}{pct}%{_RESET}")
+
+    if report.skipped:
+        print(f"\n  {_COLORS[Status.SKIPPED]}* {report.skipped} check(s) skipped — "
+              f"run with sudo for complete results{_RESET}")
+
     print("─" * 50)
     print()
 

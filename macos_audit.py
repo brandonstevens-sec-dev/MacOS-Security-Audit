@@ -5,11 +5,14 @@ macOS Security Audit Tool
 A read-only security auditing tool for macOS that checks common security
 settings and generates a compliance report.
 
-No system modifications are made. Some checks may require admin (sudo)
-privileges for full accuracy.
+No system modifications are made. Some checks require admin (sudo)
+privileges — these are skipped gracefully when running without sudo,
+unless --full is specified.
 
 Usage:
-    python3 macos_audit.py                    # colored terminal output
+    python3 macos_audit.py                    # standard audit (skips admin-only checks)
+    sudo python3 macos_audit.py               # full audit with admin privileges
+    python3 macos_audit.py --full             # remind to re-run with sudo if needed
     python3 macos_audit.py --json report.json # also write JSON report
     python3 macos_audit.py --help
 """
@@ -17,6 +20,7 @@ Usage:
 import argparse
 import platform
 import sys
+from types import ModuleType
 
 from checks import (
     find_my_mac,
@@ -29,18 +33,22 @@ from checks import (
     sip,
     updates,
 )
-from lib.models import AuditReport
+from lib.models import AuditReport, CheckResult, Severity, Status
 from lib.output import (
     print_banner,
+    print_privilege_notice,
     print_result,
     print_summary,
     print_system_info,
     write_json_report,
 )
-from lib.util import run_cmd
+from lib.util import is_admin, run_cmd
 
-# Ordered list of check modules. Each must expose a run_checks() -> list[CheckResult].
-CHECK_MODULES = [
+# Ordered list of check modules.
+# Each must expose:
+#   run_checks() -> list[CheckResult]
+#   REQUIRES_ADMIN: bool
+CHECK_MODULES: list[tuple[str, ModuleType]] = [
     ("Firewall", firewall),
     ("Gatekeeper", gatekeeper),
     ("FileVault", filevault),
@@ -51,6 +59,33 @@ CHECK_MODULES = [
     ("Sharing Services", sharing),
     ("Find My Mac", find_my_mac),
 ]
+
+
+def _skip_results_for(module: ModuleType, category: str) -> list[CheckResult]:
+    """Generate SKIPPED results for every check a module would have run."""
+    # Run the checks to discover the names, but catch everything.
+    # Instead, we create a single SKIPPED result per admin-required module.
+    # We derive check names from the module's run_checks function name list
+    # or fall back to the category name.
+    names: list[str] = []
+    for attr in dir(module):
+        if attr.startswith("check_"):
+            names.append(attr)
+
+    if not names:
+        names = [category]
+
+    results = []
+    for name in names:
+        friendly = name.replace("check_", "").replace("_", " ").title()
+        results.append(CheckResult(
+            name=friendly,
+            status=Status.SKIPPED,
+            severity=Severity.INFO,
+            description=f"Skipped — requires admin privileges.",
+            detail=f"Skipped (requires sudo). Re-run with: sudo python3 macos_audit.py",
+        ))
+    return results
 
 
 def gather_system_info() -> dict:
@@ -75,15 +110,39 @@ def gather_system_info() -> dict:
     return info
 
 
-def run_audit(json_path: str | None = None) -> AuditReport:
+def run_audit(json_path: str | None = None, full: bool = False) -> AuditReport:
     """Run all audit checks and produce the report."""
     print_banner()
 
+    admin = is_admin()
+    print_privilege_notice(admin)
+
+    if full and not admin:
+        print(
+            "\033[91m"
+            "  --full was requested but you are not running as admin.\n"
+            "  Please re-run with: sudo python3 macos_audit.py --full\n"
+            "\033[0m"
+        )
+        sys.exit(2)
+
     report = AuditReport()
     report.system_info = gather_system_info()
+    report.system_info["Privileges"] = "admin (root)" if admin else "standard user"
     print_system_info(report.system_info)
 
     for category, module in CHECK_MODULES:
+        requires_admin = getattr(module, "REQUIRES_ADMIN", False)
+
+        if requires_admin and not admin:
+            # Skip this module — not enough privileges
+            print(f"\033[1m▸ {category}\033[0m")
+            skipped = _skip_results_for(module, category)
+            for result in skipped:
+                report.results.append(result)
+                print_result(result)
+            continue
+
         print(f"\033[1m▸ {category}\033[0m")
         results = module.run_checks()
         for result in results:
@@ -107,6 +166,11 @@ def main() -> None:
         metavar="FILE",
         help="Write results to a JSON file",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Require a full audit (exit with error if not running as admin)",
+    )
     args = parser.parse_args()
 
     if platform.system() != "Darwin":
@@ -115,9 +179,9 @@ def main() -> None:
             "Results will not be accurate on other platforms.\033[0m\n"
         )
 
-    report = run_audit(json_path=args.json)
+    report = run_audit(json_path=args.json, full=args.full)
 
-    # Exit code: 0 if >=80%% compliance, 1 otherwise
+    # Exit code: 0 if >=80% compliance, 1 otherwise
     sys.exit(0 if report.compliance_pct >= 80 else 1)
 
 

@@ -1,7 +1,13 @@
 """Utility helpers for running macOS system commands."""
 
+import os
 import subprocess
 from typing import Optional
+
+
+def is_admin() -> bool:
+    """Return True if the current process is running with root/admin privileges."""
+    return os.geteuid() == 0
 
 
 def run_cmd(cmd: list[str], timeout: int = 10) -> tuple[Optional[str], Optional[str]]:

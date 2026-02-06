@@ -20,6 +20,8 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import read_plist_key, run_cmd
 
+REQUIRES_ADMIN = False
+
 
 def check_screen_lock_enabled() -> CheckResult:
     """Check whether a password is required after sleep/screensaver."""

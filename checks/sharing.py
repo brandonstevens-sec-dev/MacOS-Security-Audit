@@ -19,6 +19,8 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import run_cmd
 
+REQUIRES_ADMIN = False
+
 
 def _check_service(launchd_label: str, name: str, description: str,
                    recommendation: str) -> CheckResult:

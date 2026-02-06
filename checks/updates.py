@@ -21,6 +21,8 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import read_plist_key
 
+REQUIRES_ADMIN = False
+
 _DOMAIN = "/Library/Preferences/com.apple.SoftwareUpdate"
 
 

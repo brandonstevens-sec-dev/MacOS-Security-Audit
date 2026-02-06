@@ -18,6 +18,9 @@ Commands used (read-only):
 from lib.models import CheckResult, Severity, Status
 from lib.util import run_cmd
 
+# systemsetup -getremotelogin requires admin privileges on macOS.
+REQUIRES_ADMIN = True
+
 
 def check_remote_login() -> CheckResult:
     """Check whether Remote Login (SSH server) is enabled."""
