@@ -1,8 +1,11 @@
 """Data models for audit check results."""
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
+
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 
 class Status(Enum):
@@ -40,7 +43,7 @@ class CheckResult:
             "status": self.status.value,
             "severity": self.severity.value,
             "description": self.description,
-            "detail": self.detail,
+            "detail": _ANSI_RE.sub("", self.detail),
             "recommendation": self.recommendation,
         }
 

@@ -66,7 +66,8 @@ def print_system_info(info: dict) -> None:
 def print_result(result: CheckResult) -> None:
     icon = _status_icon(result.status)
     print(f"  {icon}  {result.name}")
-    print(f"         {result.detail}")
+    for line in result.detail.splitlines():
+        print(f"         {line}")
     if result.status == Status.FAIL and result.recommendation:
         print(f"         {_COLORS[Status.WARN]}→ {result.recommendation}{_RESET}")
     print()

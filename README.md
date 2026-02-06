@@ -33,6 +33,7 @@ python3 macos_audit.py [OPTIONS]
 Options:
   --json FILE    Write results to a JSON file in addition to terminal output
   --full         Require admin privileges; exit with error if not running as root
+  --verbose, -v  Show debug output (plist values read, commands run)
   --help         Show help message
 ```
 
@@ -67,16 +68,18 @@ python3 macos_audit.py --json audit_report.json
 | **Gatekeeper** | `spctl --status` | Critical | Prevents unsigned/tampered app execution | No |
 | **FileVault Encryption** | `fdesetup status` | Critical | Protects data at rest on disk | No |
 | **System Integrity Protection** | `csrutil status` | Critical | Protects system files from modification | No |
-| **Auto Update Check** | `defaults read` SoftwareUpdate | High | Ensures update availability is known | No |
-| **Auto Update Download** | `defaults read` SoftwareUpdate | Medium | Ensures updates are downloaded promptly | No |
-| **Auto Install macOS Updates** | `defaults read` SoftwareUpdate | Medium | Ensures OS patches are applied | No |
-| **Critical Security Updates** | `defaults read` SoftwareUpdate | High | Rapid Security Responses for active exploits | No |
+| **Automatic Updates** | `defaults read` SoftwareUpdate + commerce | High | Ensures all update components are enabled | No |
 | **Screen Lock Enabled** | `sysadminctl -screenLock` | High | Prevents unauthorized physical access | No |
 | **Screen Lock Delay** | `defaults read` screensaver | Medium | Controls time-to-lock after idle | No |
 | **Remote Login (SSH)** | `systemsetup -getremotelogin` | High | SSH server increases attack surface | Yes |
 | **File Sharing (SMB)** | `launchctl list com.apple.smbd` | Medium | Exposes filesystem over the network | No |
 | **Screen Sharing** | `launchctl list com.apple.screensharing` | Medium | Allows remote GUI control | No |
 | **Find My Mac** | `defaults read` FindMyMac | Medium | Enables remote locate/lock/wipe | Yes |
+
+The **Automatic Updates** check is a consolidated check that verifies 5 sub-settings:
+auto-download, security responses, system data files, macOS updates, and App Store updates.
+It also cross-references with `softwareupdate --schedule`. The deprecated `AutomaticCheckEnabled`
+key (empty on macOS 26 Tahoe) is skipped — it is redundant when sub-features are enabled.
 
 ## Output
 
