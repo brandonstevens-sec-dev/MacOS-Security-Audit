@@ -18,6 +18,7 @@ Usage:
 """
 
 import argparse
+import logging
 import platform
 import sys
 from types import ModuleType
@@ -171,7 +172,18 @@ def main() -> None:
         action="store_true",
         help="Require a full audit (exit with error if not running as admin)",
     )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show debug output (plist values read, commands run, sources checked)",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="    \033[90m%(name)s: %(message)s\033[0m",
+        )
 
     if platform.system() != "Darwin":
         print(
