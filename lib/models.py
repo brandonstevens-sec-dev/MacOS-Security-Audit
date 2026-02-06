@@ -13,6 +13,7 @@ class Status(Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     WARN = "WARNING"
+    INFO = "INFO"
     SKIPPED = "SKIPPED"
     ERROR = "ERROR"
 
@@ -82,7 +83,7 @@ class AuditReport:
     def compliance_pct(self) -> float:
         scorable = [
             r for r in self.results
-            if r.status not in (Status.ERROR, Status.SKIPPED)
+            if r.status not in (Status.ERROR, Status.SKIPPED, Status.INFO)
         ]
         if not scorable:
             return 0.0

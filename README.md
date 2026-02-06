@@ -69,7 +69,7 @@ python3 macos_audit.py --json audit_report.json
 | **FileVault Encryption** | `fdesetup status` | Critical | Protects data at rest on disk | No |
 | **System Integrity Protection** | `csrutil status` | Critical | Protects system files from modification | No |
 | **Automatic Updates** | `defaults read` SoftwareUpdate + commerce | High | Ensures all update components are enabled | No |
-| **Screen Lock** | `sysadminctl -screenLock` | High | Prevents unauthorized physical access | No |
+| **Antivirus / Endpoint Protection** | `/Applications`, `ps`, LaunchDaemons | Medium | Detects third-party security software | No |
 | **Remote Login (SSH)** | `systemsetup -getremotelogin` | High | SSH server increases attack surface | Yes |
 | **File Sharing (SMB)** | `launchctl list com.apple.smbd` | Medium | Exposes filesystem over the network | No |
 | **Screen Sharing** | `launchctl list com.apple.screensharing` | Medium | Allows remote GUI control | No |
@@ -80,10 +80,11 @@ auto-download, security responses, system data files, macOS updates, and App Sto
 It also cross-references with `softwareupdate --schedule`. The deprecated `AutomaticCheckEnabled`
 key (empty on macOS 26 Tahoe) is skipped — it is redundant when sub-features are enabled.
 
-The **Screen Lock** check uses `sysadminctl -screenLock status` as the primary detection method,
-with MDM managed preferences and configuration profiles as fallbacks. The deprecated
-`askForPassword` plist key (empty since macOS 10.13) is not used. The check reports both
-the enabled/disabled state and the password delay (immediate, seconds, or unknown).
+The **Antivirus / Endpoint Protection** check scans for 13 common security products
+(Malwarebytes, CrowdStrike Falcon, SentinelOne, etc.) using three methods: application
+bundles in `/Applications`, running processes, and LaunchDaemon/LaunchAgent plists.
+If no third-party AV is found, it reports `[INFO]` noting that built-in macOS protections
+(XProtect, Gatekeeper, MRT) may be sufficient for personal use.
 
 ## Output
 
@@ -93,6 +94,7 @@ The tool prints color-coded results:
 - **Green `[PASS]`** — setting meets security best practice
 - **Red `[FAIL]`** — setting does not meet security best practice
 - **Yellow `[WARN]`** — setting is borderline or could not be fully verified
+- **Blue `[INFO]`** — informational finding (not scored in compliance %)
 - **Cyan `[SKIP]`** — check was skipped (requires admin privileges)
 - **Gray `[ERR ]`** — check encountered an error (e.g., command not found)
 
@@ -126,7 +128,7 @@ MacOS-Security-Audit/
 │   ├── filevault.py        # FileVault full-disk encryption
 │   ├── sip.py              # System Integrity Protection
 │   ├── updates.py          # Automatic software update settings
-│   ├── screen_lock.py      # Screen lock & password requirements
+│   ├── antivirus.py        # Third-party antivirus / endpoint protection
 │   ├── remote_login.py     # SSH server status
 │   ├── sharing.py          # File Sharing & Screen Sharing
 │   └── find_my_mac.py      # Find My Mac / Activation Lock

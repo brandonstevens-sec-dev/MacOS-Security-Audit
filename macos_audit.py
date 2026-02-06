@@ -24,12 +24,12 @@ import sys
 from types import ModuleType
 
 from checks import (
+    antivirus,
     find_my_mac,
     filevault,
     firewall,
     gatekeeper,
     remote_login,
-    screen_lock,
     sharing,
     sip,
     updates,
@@ -55,7 +55,7 @@ CHECK_MODULES: list[tuple[str, ModuleType]] = [
     ("FileVault", filevault),
     ("System Integrity Protection", sip),
     ("Software Updates", updates),
-    ("Screen Lock", screen_lock),
+    ("Antivirus / Endpoint Protection", antivirus),
     ("Remote Login", remote_login),
     ("Sharing Services", sharing),
     ("Find My Mac", find_my_mac),

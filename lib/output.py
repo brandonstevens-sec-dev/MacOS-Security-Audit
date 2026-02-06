@@ -11,6 +11,7 @@ _COLORS = {
     Status.PASS: "\033[92m",    # green
     Status.FAIL: "\033[91m",    # red
     Status.WARN: "\033[93m",    # yellow
+    Status.INFO: "\033[94m",    # blue
     Status.SKIPPED: "\033[96m", # cyan
     Status.ERROR: "\033[90m",   # gray
 }
@@ -27,6 +28,7 @@ def _status_icon(status: Status) -> str:
         Status.PASS: _color(status, "[PASS]"),
         Status.FAIL: _color(status, "[FAIL]"),
         Status.WARN: _color(status, "[WARN]"),
+        Status.INFO: _color(status, "[INFO]"),
         Status.SKIPPED: _color(status, "[SKIP]"),
         Status.ERROR: _color(status, "[ERR ]"),
     }
