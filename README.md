@@ -4,6 +4,17 @@ A read-only Python CLI tool that audits key macOS security settings and generate
 
 **No system modifications are made.** All checks use read-only macOS commands.
 
+## Download
+
+A pre-built macOS app is available on the
+[Releases page](https://github.com/brandonstevens-sec-dev/MacOS-Security-Audit/releases)
+for users who don't want to build from source. Python 3.12 must be installed on
+your Mac (the app bundles the audit scripts but not a Python runtime).
+
+> **Note:** The app is unsigned. On first launch macOS Gatekeeper will block it.
+> To open it, right-click the app and choose **Open**, or go to
+> **System Settings > Privacy & Security > Open Anyway**.
+
 ## Requirements
 
 - macOS 13 (Ventura) or later (tested on macOS with Apple Silicon)
@@ -133,42 +144,53 @@ This allows integration with CI/CD or automated compliance checking.
 
 ## GUI Version (SwiftUI)
 
-A native macOS GUI is included in the `MacOSAuditGUI/` folder. It runs the same
-Python audit script under the hood and displays results in a clean SwiftUI interface.
+A native macOS GUI is included. The easiest way to use it is to download the
+pre-built `.app` from the
+[Releases page](https://github.com/brandonstevens-sec-dev/MacOS-Security-Audit/releases).
 
-### Requirements
+### Using the Pre-built App
 
-- Xcode 15+ (for building)
-- The Python CLI must be set up first (see Quick Start above)
+1. Download `MacOSAuditGUI.app.zip` from the latest release
+2. Unzip and move to `/Applications` (or run from anywhere)
+3. Right-click the app and choose **Open** (required on first launch — the app is unsigned)
+4. Click **Run Security Audit**
 
-### Running the GUI
+The app bundles the Python audit scripts internally. You only need Python 3.12
+installed on your Mac.
 
-1. Open the Xcode project:
+### Building from Source (Development)
+
+If you want to modify the GUI or contribute:
+
+1. Set up the Python CLI first (see Quick Start above)
+2. Open the Xcode project:
    ```bash
    open MacOSAuditGUI/MacOSAuditGUI.xcodeproj
    ```
-2. Select the **MacOSAuditGUI** scheme and click **Run** (or press `Cmd+R`)
-3. Click **Run Audit** in the app toolbar
+3. Select the **MacOSAuditGUI** scheme and click **Run** (or press `Cmd+R`)
 
-The GUI automatically locates `macos_audit.py` in the repository root and uses
-the project's `venv/` Python environment if available.
+The Xcode project references `macos_audit.py`, `checks/`, and `lib/` from the
+repo root and bundles them into the app's Resources directory at build time.
 
 ### How It Works
 
 - The GUI runs `macos_audit.py --json <tmpfile>` as a subprocess
 - Parses the JSON output and displays results with colored status indicators
 - Shows a compliance score summary and expandable detail for each check
-- No admin privileges are required (admin-only checks show as skipped)
+- Export results as JSON via the toolbar export button
+- Admin-only checks show as skipped when not running with sudo
 
 ### CLI vs GUI
 
 | | CLI | GUI |
 |---|---|---|
-| **Run** | `./macos_audit.py` | Open `.xcodeproj` and Run |
+| **Install** | `git clone` + `pip` | Download `.app` from Releases |
+| **Run** | `./macos_audit.py` | Double-click the app |
 | **Output** | Terminal (colored text) | Native macOS window |
-| **JSON export** | `--json report.json` | Displayed in-app |
+| **JSON export** | `--json report.json` | Toolbar export button |
 | **sudo support** | `sudo ./macos_audit.py` | Run from Terminal with sudo |
-| **Dependencies** | Python 3.10+ | Xcode 15+ and Python 3.10+ |
+| **Dependencies** | Python 3.10+ | Python 3.12 (no Xcode needed) |
+| **Development** | Edit `.py` files | Xcode 15+ required |
 
 ## Project Structure
 
@@ -215,9 +237,26 @@ Each check module contains:
 4. Add a `run_checks()` function that returns a list of results
 5. Register the module in `CHECK_MODULES` in `macos_audit.py`
 
+## Releases
+
+### v1.0 — February 2026
+
+- Initial release
+- Native SwiftUI GUI included (pre-built `.app` available on Releases page)
+- CLI supports JSON export and exit codes for CI/CD integration
+- 11 security checks across firewall, encryption, updates, antivirus, and sharing services
+- Privilege-aware: runs without sudo (admin-only checks skipped gracefully)
+- Tested on macOS 26.2 Tahoe (Apple Silicon M4)
+
 ## Disclaimer
 
-This tool is provided as-is for security assessment purposes. It performs **read-only** operations and does not modify any system settings. Results should be validated manually. Use at your own risk.
+This tool is provided as-is for security assessment purposes. It performs
+**read-only** operations and does not modify any system settings. Results should
+be validated manually. Use at your own risk.
+
+The macOS GUI app is **unsigned** and not notarized by Apple. On first launch,
+macOS Gatekeeper will display a warning. To open it, right-click the app and
+choose **Open**, or go to **System Settings > Privacy & Security > Open Anyway**.
 
 ## License
 
