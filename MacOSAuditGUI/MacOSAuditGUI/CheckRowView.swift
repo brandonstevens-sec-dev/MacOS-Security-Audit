@@ -6,19 +6,39 @@ struct CheckRowView: View {
 
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(result.detail)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-
-                if !result.recommendation.isEmpty {
-                    Label(result.recommendation, systemImage: "lightbulb")
+            VStack(alignment: .leading, spacing: 10) {
+                // Detail
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Details")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tertiary)
+                    Text(result.detail)
                         .font(.callout)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+
+                // Remediation tip for warnings and failures
+                if !result.recommendation.isEmpty {
+                    Divider()
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("What to do", systemImage: "lightbulb.fill")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.orange)
+                        Text(result.recommendation)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.orange.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, 6)
+            .padding(.bottom, 2)
         } label: {
             HStack(spacing: 10) {
                 statusIndicator
@@ -95,5 +115,5 @@ struct CheckRowView: View {
             CheckRowView(result: result)
         }
     }
-    .frame(width: 650)
+    .frame(width: 700)
 }

@@ -1,27 +1,43 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @StateObject private var runner = AuditRunner()
 
     var body: some View {
-        VStack(spacing: 0) {
+        Group {
             if runner.isRunning {
                 runningView
             } else if let report = runner.report {
                 resultsView(report)
             } else {
-                emptyState
+                landingView
             }
         }
-        .frame(minWidth: 600, minHeight: 400)
+        .frame(minWidth: 680, minHeight: 450)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
+                if runner.report != nil {
+                    Button {
+                        exportJSON()
+                    } label: {
+                        Label("Export JSON", systemImage: "square.and.arrow.up")
+                    }
+                    .help("Export audit report as JSON")
+                }
+
                 Button {
                     runner.runAudit()
                 } label: {
-                    Label("Run Audit", systemImage: "play.fill")
+                    if runner.report != nil {
+                        Label("Re-run Audit", systemImage: "arrow.clockwise")
+                    } else {
+                        Label("Run Audit", systemImage: "play.fill")
+                    }
                 }
                 .disabled(runner.isRunning)
+                .help(runner.report != nil ? "Run the audit again" : "Start security audit")
             }
         }
         .alert("Error", isPresented: showError) {
@@ -31,30 +47,55 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - States
+    // MARK: - Landing
 
-    private var emptyState: some View {
-        VStack(spacing: 16) {
+    private var landingView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
             Image(systemName: "shield.lefthalf.filled")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 72))
+                .foregroundStyle(.blue.gradient)
+                .shadow(color: .blue.opacity(0.3), radius: 12, y: 4)
+
             Text("macOS Security Audit")
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text("Click **Run Audit** to scan your security settings.")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            Text("Scan your Mac for common security misconfigurations\ncovering firewall, encryption, system integrity, software\nupdates, antivirus, network sharing, and more.")
+                .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            Text("No system modifications will be made.")
+                .lineSpacing(2)
+
+            Button {
+                runner.runAudit()
+            } label: {
+                Label("Run Security Audit", systemImage: "play.fill")
+                    .font(.title3)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.top, 8)
+
+            Text("Read-only \u{2014} no system changes will be made.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
+
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
     }
+
+    // MARK: - Running
 
     private var runningView: some View {
         VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
-            Text("Running security audit...")
+            Text("Running security audit\u{2026}")
                 .font(.title3)
                 .foregroundStyle(.secondary)
             Text("This may take a few seconds.")
@@ -62,12 +103,15 @@ struct ContentView: View {
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
     }
+
+    // MARK: - Results
 
     private func resultsView(_ report: AuditReport) -> some View {
         List {
             Section {
-                SummaryView(summary: report.summary)
+                SummaryView(summary: report.summary, lastRunDate: runner.lastRunDate)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
             }
@@ -93,6 +137,26 @@ struct ContentView: View {
                 }
             }
         }
+        .transition(.opacity)
+    }
+
+    // MARK: - Export
+
+    private func exportJSON() {
+        guard let data = runner.reportJSONData() else { return }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType.json]
+        panel.nameFieldStringValue = "security_audit_report.json"
+        panel.title = "Export Audit Report"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            try data.write(to: url)
+        } catch {
+            runner.errorMessage = "Export failed: \(error.localizedDescription)"
+        }
     }
 
     // MARK: - Helpers
@@ -107,5 +171,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .frame(width: 700, height: 600)
+        .frame(width: 780, height: 620)
 }

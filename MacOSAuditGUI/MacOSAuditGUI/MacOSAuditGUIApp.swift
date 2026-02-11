@@ -6,6 +6,6 @@ struct MacOSAuditGUIApp: App {
         WindowGroup {
             ContentView()
         }
-        .defaultSize(width: 700, height: 600)
+        .defaultSize(width: 780, height: 620)
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum AuditError: LocalizedError {
     case scriptNotFound
@@ -24,27 +25,43 @@ class AuditRunner: ObservableObject {
     @Published var isRunning = false
     @Published var report: AuditReport?
     @Published var errorMessage: String?
+    @Published var lastRunDate: Date?
 
     func runAudit() {
         guard !isRunning else { return }
-        isRunning = true
-        errorMessage = nil
-        report = nil
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isRunning = true
+            errorMessage = nil
+            report = nil
+        }
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             do {
                 let result = try self?.executeAudit()
                 DispatchQueue.main.async {
-                    self?.report = result
-                    self?.isRunning = false
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        self?.report = result
+                        self?.lastRunDate = Date()
+                        self?.isRunning = false
+                    }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self?.errorMessage = error.localizedDescription
-                    self?.isRunning = false
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        self?.errorMessage = error.localizedDescription
+                        self?.isRunning = false
+                    }
                 }
             }
         }
+    }
+
+    /// Returns the report as pretty-printed JSON data for export.
+    func reportJSONData() -> Data? {
+        guard let report else { return nil }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try? encoder.encode(report)
     }
 
     private func executeAudit() throws -> AuditReport {
