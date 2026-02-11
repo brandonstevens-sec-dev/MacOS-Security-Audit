@@ -113,7 +113,14 @@ class AuditRunner: ObservableObject {
     // MARK: - Locate macos_audit.py
 
     private func findScript() throws -> String {
-        // Method 1: Relative to this source file (development in-repo)
+        // Method 1: App bundle resources (distributed .app)
+        // The Xcode project bundles macos_audit.py, checks/, and lib/
+        // into Contents/Resources/ so the script can run standalone.
+        if let bundledScript = Bundle.main.path(forResource: "macos_audit", ofType: "py") {
+            return bundledScript
+        }
+
+        // Method 2: Relative to this source file (development in-repo)
         // AuditRunner.swift is at MacOSAuditGUI/MacOSAuditGUI/AuditRunner.swift
         // Repo root is two directories up from that.
         let sourceDir = (#filePath as NSString).deletingLastPathComponent
@@ -123,19 +130,10 @@ class AuditRunner: ObservableObject {
             return devPath
         }
 
-        // Method 2: Current working directory
+        // Method 3: Current working directory
         let cwdPath = FileManager.default.currentDirectoryPath + "/macos_audit.py"
         if FileManager.default.fileExists(atPath: cwdPath) {
             return cwdPath
-        }
-
-        // Method 3: Next to the app bundle
-        if let bundlePath = Bundle.main.bundlePath as NSString? {
-            let appDir = bundlePath.deletingLastPathComponent
-            let adjacentPath = (appDir as NSString).appendingPathComponent("macos_audit.py")
-            if FileManager.default.fileExists(atPath: adjacentPath) {
-                return adjacentPath
-            }
         }
 
         throw AuditError.scriptNotFound
@@ -144,16 +142,23 @@ class AuditRunner: ObservableObject {
     // MARK: - Locate python3.12
 
     private func findPython(repoRoot: String) throws -> String {
-        // Prefer python3.12 explicitly to avoid falling back to an older
-        // system Python that may not support modern syntax.
-        let candidates = [
-            repoRoot + "/venv/bin/python3",              // project venv from Quick Start
+        // When running from bundle, repoRoot is the Resources directory —
+        // there's no venv there, so skip straight to system pythons.
+        // When running from source, try the project venv first.
+        let isBundle = repoRoot.contains(".app/Contents/Resources")
+
+        var candidates: [String] = []
+        if !isBundle {
+            candidates.append(repoRoot + "/venv/bin/python3")   // project venv from Quick Start
+        }
+        candidates.append(contentsOf: [
             "/opt/homebrew/bin/python3.12",               // Homebrew Apple Silicon (M1/M2/M3/M4)
             "/usr/local/bin/python3.12",                  // Homebrew Intel / python.org
             "/opt/homebrew/bin/python3",                  // Homebrew generic (Apple Silicon)
             "/usr/local/bin/python3",                     // Homebrew generic (Intel) / python.org
             "/usr/bin/python3",                           // System python (last resort)
-        ]
+        ])
+
         for path in candidates {
             let resolved = (path as NSString).standardizingPath
             if FileManager.default.fileExists(atPath: resolved) {

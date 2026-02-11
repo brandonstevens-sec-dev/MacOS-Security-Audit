@@ -14,6 +14,9 @@
 		A1B2C30100000000000005 /* AuditModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000005 /* AuditModels.swift */; };
 		A1B2C30100000000000006 /* AuditRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000006 /* AuditRunner.swift */; };
 		A1B2C30100000000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000007 /* Assets.xcassets */; };
+		A1B2C3010000000000000A /* macos_audit.py in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000A /* macos_audit.py */; };
+		A1B2C3010000000000000B /* checks in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000B /* checks */; };
+		A1B2C3010000000000000C /* lib in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000C /* lib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		A1B2C30200000000000007 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1B2C30200000000000008 /* MacOSAuditGUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MacOSAuditGUI.entitlements; sourceTree = "<group>"; };
 		A1B2C30200000000000009 /* MacOSAuditGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSAuditGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3020000000000000A /* macos_audit.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = macos_audit.py; path = ../macos_audit.py; sourceTree = SOURCE_ROOT; };
+		A1B2C3020000000000000B /* checks */ = {isa = PBXFileReference; lastKnownFileType = folder; name = checks; path = ../checks; sourceTree = SOURCE_ROOT; };
+		A1B2C3020000000000000C /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = ../lib; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +49,9 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C30400000000000002 /* MacOSAuditGUI */,
+				A1B2C3020000000000000A /* macos_audit.py */,
+				A1B2C3020000000000000B /* checks */,
+				A1B2C3020000000000000C /* lib */,
 				A1B2C30400000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,6 +138,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C30100000000000007 /* Assets.xcassets in Resources */,
+				A1B2C3010000000000000A /* macos_audit.py in Resources */,
+				A1B2C3010000000000000B /* checks in Resources */,
+				A1B2C3010000000000000C /* lib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
