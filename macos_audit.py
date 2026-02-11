@@ -22,6 +22,7 @@ import logging
 import platform
 import sys
 from types import ModuleType
+from typing import Optional
 
 from checks import (
     antivirus,
@@ -111,7 +112,7 @@ def gather_system_info() -> dict:
     return info
 
 
-def run_audit(json_path: str | None = None, full: bool = False) -> AuditReport:
+def run_audit(json_path: Optional[str] = None, full: bool = False) -> AuditReport:
     """Run all audit checks and produce the report."""
     print_banner()
 

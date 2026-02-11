@@ -11,7 +11,7 @@ enum AuditError: LocalizedError {
         case .scriptNotFound:
             return "Could not find macos_audit.py. Make sure the GUI is inside the MacOS-Security-Audit repository."
         case .pythonNotFound:
-            return "Could not find python3. Install Python 3.10+ or create a venv in the project root."
+            return "Could not find python3.12. Install Python 3.12 (brew install python@3.12) or create a venv in the project root."
         case .auditFailed(let msg):
             return "Audit failed: \(msg)"
         case .jsonReadFailed(let msg):
@@ -124,14 +124,18 @@ class AuditRunner: ObservableObject {
         throw AuditError.scriptNotFound
     }
 
-    // MARK: - Locate python3
+    // MARK: - Locate python3.12
 
     private func findPython(repoRoot: String) throws -> String {
+        // Prefer python3.12 explicitly to avoid falling back to an older
+        // system Python that may not support modern syntax.
         let candidates = [
-            repoRoot + "/venv/bin/python3",          // project venv from Quick Start
-            "/opt/homebrew/bin/python3",              // Homebrew Apple Silicon
-            "/usr/local/bin/python3",                 // Homebrew Intel / python.org
-            "/usr/bin/python3",                       // System python
+            repoRoot + "/venv/bin/python3",              // project venv from Quick Start
+            "/opt/homebrew/bin/python3.12",               // Homebrew Apple Silicon (M1/M2/M3/M4)
+            "/usr/local/bin/python3.12",                  // Homebrew Intel / python.org
+            "/opt/homebrew/bin/python3",                  // Homebrew generic (Apple Silicon)
+            "/usr/local/bin/python3",                     // Homebrew generic (Intel) / python.org
+            "/usr/bin/python3",                           // System python (last resort)
         ]
         for path in candidates {
             let resolved = (path as NSString).standardizingPath
