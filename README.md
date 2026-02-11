@@ -17,7 +17,7 @@ your Mac (the app bundles the audit scripts but not a Python runtime).
 
 ## Requirements
 
-- macOS 13 (Ventura) or later (tested on macOS with Apple Silicon)
+- macOS 13 (Ventura) or later (tested on both Apple Silicon and Intel based devices)
 - Python 3.10+ (3.12 recommended)
 - No third-party dependencies — uses only the Python standard library
 
