@@ -131,25 +131,73 @@ When `--json` is specified, a structured JSON file is written containing:
 
 This allows integration with CI/CD or automated compliance checking.
 
+## GUI Version (SwiftUI)
+
+A native macOS GUI is included in the `MacOSAuditGUI/` folder. It runs the same
+Python audit script under the hood and displays results in a clean SwiftUI interface.
+
+### Requirements
+
+- Xcode 15+ (for building)
+- The Python CLI must be set up first (see Quick Start above)
+
+### Running the GUI
+
+1. Open the Xcode project:
+   ```bash
+   open MacOSAuditGUI/MacOSAuditGUI.xcodeproj
+   ```
+2. Select the **MacOSAuditGUI** scheme and click **Run** (or press `Cmd+R`)
+3. Click **Run Audit** in the app toolbar
+
+The GUI automatically locates `macos_audit.py` in the repository root and uses
+the project's `venv/` Python environment if available.
+
+### How It Works
+
+- The GUI runs `macos_audit.py --json <tmpfile>` as a subprocess
+- Parses the JSON output and displays results with colored status indicators
+- Shows a compliance score summary and expandable detail for each check
+- No admin privileges are required (admin-only checks show as skipped)
+
+### CLI vs GUI
+
+| | CLI | GUI |
+|---|---|---|
+| **Run** | `./macos_audit.py` | Open `.xcodeproj` and Run |
+| **Output** | Terminal (colored text) | Native macOS window |
+| **JSON export** | `--json report.json` | Displayed in-app |
+| **sudo support** | `sudo ./macos_audit.py` | Run from Terminal with sudo |
+| **Dependencies** | Python 3.10+ | Xcode 15+ and Python 3.10+ |
+
 ## Project Structure
 
 ```
 MacOS-Security-Audit/
-├── macos_audit.py          # CLI entry point
-├── checks/                 # Security check modules
-│   ├── firewall.py         # Application Firewall & stealth mode
-│   ├── gatekeeper.py       # Gatekeeper code-signing enforcement
-│   ├── filevault.py        # FileVault full-disk encryption
-│   ├── sip.py              # System Integrity Protection
-│   ├── updates.py          # Automatic software update settings
-│   ├── antivirus.py        # Third-party antivirus / endpoint protection
-│   ├── remote_login.py     # SSH server status
-│   ├── sharing.py          # File Sharing & Screen Sharing
-│   └── find_my_mac.py      # Find My Mac / Activation Lock
-├── lib/                    # Core framework
-│   ├── models.py           # CheckResult, AuditReport data models
-│   ├── output.py           # Terminal formatting & JSON export
-│   └── util.py             # Command execution helpers
+├── macos_audit.py              # CLI entry point
+├── checks/                     # Security check modules
+│   ├── firewall.py             # Application Firewall & stealth mode
+│   ├── gatekeeper.py           # Gatekeeper code-signing enforcement
+│   ├── filevault.py            # FileVault full-disk encryption
+│   ├── sip.py                  # System Integrity Protection
+│   ├── updates.py              # Automatic software update settings
+│   ├── antivirus.py            # Third-party antivirus / endpoint protection
+│   ├── remote_login.py         # SSH server status
+│   ├── sharing.py              # File Sharing & Screen Sharing
+│   └── find_my_mac.py          # Find My Mac / Activation Lock
+├── lib/                        # Core framework
+│   ├── models.py               # CheckResult, AuditReport data models
+│   ├── output.py               # Terminal formatting & JSON export
+│   └── util.py                 # Command execution helpers
+├── MacOSAuditGUI/              # Native macOS GUI (SwiftUI)
+│   ├── MacOSAuditGUI.xcodeproj
+│   └── MacOSAuditGUI/
+│       ├── MacOSAuditGUIApp.swift   # App entry point
+│       ├── ContentView.swift        # Main window layout
+│       ├── CheckRowView.swift       # Individual check result row
+│       ├── SummaryView.swift        # Compliance score summary
+│       ├── AuditModels.swift        # Swift models matching JSON output
+│       └── AuditRunner.swift        # Subprocess execution & JSON parsing
 └── README.md
 ```
 
